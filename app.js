@@ -8,6 +8,25 @@ function listAllEmployees(req, res) {
   res.end(JSON.stringify(data));
 }
 
+function addEmployee(req, res) {
+  let body = "";
+  req.on("data", chunk => (body += chunk.toString()));
+  req.on("end", () => {
+    data.push(JSON.parse(body));
+    res.statusCode = 201;
+    return res.end(`${JSON.parse(body).name} added.`);
+  });
+  req.on("error", error => {
+    res.statusCode = 400;
+    return res.end(error);
+  });
+}
+
+function defaultRoute(req, res) {
+  res.statusCode = 404;
+  res.send('Please select the "/api/employees" endpoint');
+}
+
 const server = http.createServer((req, res) => {
   const urlParts = url.parse(req.url);
 
@@ -16,12 +35,15 @@ const server = http.createServer((req, res) => {
       case "GET":
         listAllEmployees(req, res);
         break;
+      case "POST":
+        addEmployee(req, res);
+        break;
       default:
-        // ...
+        defaultRoute(req, res);
         break;
     }
   } else {
-    // ...
+    defaultRoute(req, res);
   }
 });
 
